@@ -11,9 +11,7 @@ My look-and-feel layer for pi. Not needed for anything to work; leave it out whe
 | `usage.ts` | `/usage`: Copilot quota and Codex rate limits |
 | `system-prompt.ts` | `/system-prompt` inspector |
 | `brainstorm-mode/` | Tab-toggled read-only brainstorm mode |
-| `herdr-agent-state.ts` | herdr integration (managed by herdr) |
 
-Skills: `deck-creator`.
 
 ## Depends on pi-core
 
