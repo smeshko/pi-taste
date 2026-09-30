@@ -52,7 +52,7 @@ left the border stuck on a stale color after exiting.
 | `askUserQuestion` | `edit` `write` |
 | `websearch` `webfetch` | mutating MCP tools |
 | `subagent` (constrained) | everything else, fail-closed |
-| `search_mcp_tools` + read-only `mcp__*` | |
+| `codemode` `tool_search` + read-only `mcp__*` | |
 | `brainstorm_save` | |
 
 ## How read-only is enforced
@@ -63,9 +63,10 @@ Prose is not enforcement. Four layers, in descending order of reliability:
    with the allowlist, so write tools are not in the schema at all. The set is
    only ever narrowed, never widened.
 2. **Call-time block.** The `tool_call` hook re-checks every call. This is not
-   redundant: the MCP loader calls `pi.setActiveTools()` *additively* mid-turn
-   (`mcp/index.ts:134`), so tools can appear after the mode was entered. A
-   `tool_result` hook re-narrows the set after `search_mcp_tools` runs.
+   redundant: `tool_search` adds tools to the active set mid-turn, and
+   `codemode` scripts call tools through `ctx.executeTool()`, which bypasses
+   the schema but still fires `tool_call`. A `tool_result` hook re-narrows the
+   set after `tool_search` runs.
 3. **Argument coercion.** See subagent below.
 4. **System prompt.** Appended in `before_agent_start` as real system-role text,
    so it vanishes cleanly when the mode is left - no stale-context filtering
@@ -89,8 +90,7 @@ by argv rather than by prompting.
 
 ### MCP
 
-Tool names are `mcp__<server>__<remote>`. The MCP extension does not retain the
-server's `annotations.readOnlyHint`, so classification is name-based and
+Tool names are `mcp__<server>__<remote>`. Classification is name-based and
 **fail-closed**:
 
 - a write verb anywhere in the name loses (`wit_get_or_create_work_item` is denied);

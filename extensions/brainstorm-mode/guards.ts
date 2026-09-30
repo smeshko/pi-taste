@@ -24,7 +24,10 @@ export const ALLOWED_TOOLS = [
 	"websearch",
 	"webfetch",
 	"subagent",
-	"search_mcp_tools",
+	// Built-in MCP gateways. Scripts and loaded tools still hit the tool_call guard:
+	// nested codemode calls run through ctx.executeTool(), which fires tool_call.
+	"codemode",
+	"tool_search",
 	"brainstorm_save",
 ] as const;
 
@@ -44,7 +47,7 @@ export const READONLY_AGENTS: Record<string, string[]> = {
 	webfetch: ["websearch", "webfetch"],
 };
 
-/** MCP tool names are `mcp__<server>__<remoteName>` (see mcp/src/tools.ts). */
+/** MCP tool names are `mcp__<server>__<remoteName>` (built-in MCP naming). */
 const MCP_PREFIX = "mcp__";
 
 /** Verbs that read. Matched as a whole segment of the remote tool name. */

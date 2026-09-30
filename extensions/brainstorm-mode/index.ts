@@ -12,7 +12,7 @@
  *   1. `setActiveTools()` narrows the schema to an allowlist, so write tools are
  *      not merely discouraged - they are absent.
  *   2. The `tool_call` hook re-checks every call, catching tools that appear
- *      after mode entry (the MCP loader adds tools to the active set mid-turn).
+ *      after mode entry (tool_search adds tools to the active set mid-turn).
  *   3. `subagent` arguments are coerced, since its `tools` parameter overrides
  *      the child agent's frontmatter and would otherwise grant write access.
  *   4. The system prompt shapes behaviour. It does not enforce it.
@@ -258,10 +258,10 @@ export default function brainstormMode(pi: ExtensionAPI): void {
 		if (verdict.reason) return { block: true, reason: verdict.reason };
 	});
 
-	// The MCP loader calls setActiveTools() additively when it loads tools, which
-	// would slip mutating tools back into the schema. Re-narrow afterwards.
+	// tool_search declares the tools it finds, which would slip mutating MCP tools
+	// back into the schema. Re-narrow afterwards.
 	pi.on("tool_result", async (event) => {
-		if (!mode.allowedTools || event.toolName !== "search_mcp_tools") return;
+		if (!mode.allowedTools || event.toolName !== "tool_search") return;
 		const active = pi.getActiveTools();
 		const filtered = active.filter((name) => !parseMcpToolName(name) || isAllowed(name));
 		if (filtered.length !== active.length) pi.setActiveTools(filtered);

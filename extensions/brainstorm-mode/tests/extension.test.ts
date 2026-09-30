@@ -118,7 +118,7 @@ test("restored brainstorm session narrows the active tool set", async () => {
 	assert.equal(allowed, undefined);
 });
 
-test("MCP loader additions are re-narrowed after search_mcp_tools", async () => {
+test("tool_search additions are re-narrowed", async () => {
 	const stub = createStubApi();
 	brainstormMode(stub.api as never);
 
@@ -133,13 +133,13 @@ test("MCP loader additions are re-narrowed after search_mcp_tools", async () => 
 		] as never;
 	await stub.emit("session_start", { type: "session_start", reason: "resume" }, ctx);
 
-	// Simulate the MCP loader widening the active set mid-turn.
+	// Simulate tool_search widening the active set mid-turn.
 	stub.api.setActiveTools([
 		...stub.getActive(),
 		"mcp__ado__wit_get_work_item",
 		"mcp__ado__wit_create_work_item",
 	]);
-	await stub.emit("tool_result", { toolName: "search_mcp_tools" });
+	await stub.emit("tool_result", { toolName: "tool_search" });
 
 	const active = stub.getActive();
 	assert.ok(active.includes("mcp__ado__wit_get_work_item"), "read-only MCP tool should survive");
