@@ -10,6 +10,7 @@ My look-and-feel layer for pi. Not needed for anything to work; leave it out whe
 | `working-timer.ts` | Rainbow spinner with elapsed time |
 | `usage.ts` | `/usage`: Copilot quota and Codex rate limits |
 | `system-prompt.ts` | `/system-prompt` inspector |
+| `new-session-with-message.ts` | `new_session` tool: start a fresh session seeded with a message |
 | `brainstorm-mode/` | Tab-toggled read-only brainstorm mode |
 
 

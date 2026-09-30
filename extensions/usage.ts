@@ -206,7 +206,12 @@ async function fetchCopilotUsage(ctx: ExtensionContext): Promise<CopilotSnapshot
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isOpenAICodexProvider(provider: string | undefined): boolean {
-	return /^openai-codex(-\d+)?$/.test(provider ?? "");
+	// Pi now offers ChatGPT subscription OAuth under openai; keep legacy accounts working.
+	return /^(?:openai-codex|openai|chatgpt)(-\d+)?$/.test(provider ?? "");
+}
+
+function isChatGPTSubscription(ctx: ExtensionContext): boolean {
+	return Boolean(ctx.model && isOpenAICodexProvider(ctx.model.provider) && ctx.modelRegistry.isUsingOAuth(ctx.model));
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -444,13 +449,13 @@ async function showUsageDetails(
 
 	const dashboard = getDashboard(stats.provider);
 
-	// Prefer Codex dashboard URL when codex snapshot is present
-	const codexDashboardUrl = codexSnapshot
+	// Subscription sessions use the Codex dashboard even when the quota fetch fails.
+	const codexDashboardUrl = isChatGPTSubscription(ctx)
 		? PROVIDER_DASHBOARDS["openai-codex"]!.url
 		: undefined;
 
 	const dashboardUrl = codexDashboardUrl ?? dashboard?.url;
-	const dashboardLabel = codexSnapshot ? "Codex usage" : dashboard?.label ?? "usage";
+	const dashboardLabel = codexDashboardUrl ? "Codex usage" : dashboard?.label ?? "usage";
 
 	const effectiveOpenOption = dashboardUrl
 		? `${OPEN_DASHBOARD_OPTION_PREFIX}${dashboardUrl}`
@@ -489,7 +494,7 @@ async function showUsageDetails(
 					lines.push("");
 				}
 
-				// ── Codex rate limits (only for openai-codex) ──────────────
+				// ── ChatGPT subscription rate limits ──────────────
 				if (codexSnapshot) {
 					const subtitle = [
 						codexSnapshot.planType ? `plan: ${codexSnapshot.planType}` : undefined,
@@ -625,7 +630,7 @@ export default function usageExtension(pi: ExtensionAPI) {
 			const selected = await showUsageDetails(pi, ctx, stats, codexSnapshot, copilotSnapshot);
 			if (selected?.startsWith(OPEN_DASHBOARD_OPTION_PREFIX)) {
 				const url = selected.slice(OPEN_DASHBOARD_OPTION_PREFIX.length);
-				await openDashboardUrl(pi, ctx, url, dashboard?.label ?? "usage");
+				await openDashboardUrl(pi, ctx, url, isChatGPTSubscription(ctx) ? "Codex usage" : dashboard?.label ?? "usage");
 			}
 		},
 	});
